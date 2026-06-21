@@ -707,7 +707,7 @@ async function sendToSheets() {
     total:     questions.length,
     answers:   answers.map((a, i) => ({
       question: questions[i].section,
-      chosen:   letters[a.chosen].toUpperCase() + ') ' + questions[i].options[a.chosen],
+      chosen:   a.correct ? 1 : 0,
       correct:  a.correct
     }))
   };
