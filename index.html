@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario de Cultura — PERU MINERIA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #111418;
+    --surface:   #1a1f26;
+    --card:      #222830;
+    --border:    #2e3640;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2e;
+    --gold-glow: rgba(201,168,76,0.12);
+    --text:      #e8e2d6;
+    --muted:     #7a8494;
+    --correct:   #3d7a5c;
+    --correct-bg:#1a3328;
+    --wrong:     #7a3d3d;
+    --wrong-bg:  #331a1a;
+    --radius:    10px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+
+  /* ── Header ── */
+  header {
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(22px, 5vw, 34px);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .gold-rule {
+    width: 48px;
+    height: 2px;
+    background: var(--gold);
+    margin: 14px auto 0;
+  }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 20px;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .progress-bar-bg {
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── Card ── */
+  .card {
+    width: 100%;
+    max-width: 700px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px 28px 28px;
+  }
+
+  .section-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 14px;
+  }
+
+  .question-text {
+    font-size: clamp(15px, 2.5vw, 17px);
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.55;
+    margin-bottom: 24px;
+  }
+
+  /* ── Options ── */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.18s, background 0.18s, transform 0.12s;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    font-family: inherit;
+    width: 100%;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--gold-dim);
+    background: var(--gold-glow);
+    transform: translateX(2px);
+  }
+  .option-letter {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    transition: border-color 0.18s, color 0.18s, background 0.18s;
+    margin-top: 1px;
+  }
+  .option-btn.selected .option-letter { border-color: var(--gold); color: var(--gold); }
+  .option-btn.selected { border-color: var(--gold); background: var(--gold-glow); }
+
+  .option-btn.correct {
+    border-color: #4aad7a;
+    background: var(--correct-bg);
+  }
+  .option-btn.correct .option-letter {
+    background: #3d7a5c;
+    border-color: #4aad7a;
+    color: #fff;
+  }
+  .option-btn.wrong {
+    border-color: #ad4a4a;
+    background: var(--wrong-bg);
+  }
+  .option-btn.wrong .option-letter {
+    background: #7a3d3d;
+    border-color: #ad4a4a;
+    color: #fff;
+  }
+  .option-btn:disabled { cursor: default; }
+
+  /* ── Feedback ── */
+  .feedback {
+    display: none;
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    line-height: 1.55;
+    border-left: 3px solid;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct-fb {
+    background: var(--correct-bg);
+    border-color: #4aad7a;
+    color: #a3d4b8;
+  }
+  .feedback.wrong-fb {
+    background: var(--wrong-bg);
+    border-color: #ad4a4a;
+    color: #d4a3a3;
+  }
+  .feedback-label {
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  /* ── Nav buttons ── */
+  .nav {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+  .btn-next {
+    background: var(--gold);
+    color: #111;
+    border: none;
+    border-radius: var(--radius);
+    padding: 12px 28px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+    display: none;
+  }
+  .btn-next.show { display: block; }
+  .btn-next:hover { background: #e0b95a; transform: translateY(-1px); }
+
+  /* ── Results ── */
+  #results {
+    display: none;
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+  }
+  #results.show { display: block; }
+
+  .score-ring {
+    width: 130px;
+    height: 130px;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+  .score-ring .ring-fill { fill: none; stroke: var(--gold); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 314; transition: stroke-dashoffset 1s ease; }
+  .score-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .score-number {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .score-label { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
+
+  .result-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(20px, 4vw, 28px);
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .result-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+  .score-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .breakdown-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 22px;
+    text-align: center;
+  }
+  .breakdown-num { font-size: 28px; font-weight: 700; font-family: 'Playfair Display', serif; }
+  .breakdown-num.green { color: #4aad7a; }
+  .breakdown-num.red { color: #ad4a4a; }
+  .breakdown-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .btn-restart {
+    background: transparent;
+    color: var(--gold);
+    border: 1.5px solid var(--gold);
+    border-radius: var(--radius);
+    padding: 13px 32px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-restart:hover { background: var(--gold-glow); }
+
+  /* ── Quiz wrapper ── */
+  #quiz { width: 100%; }
+
+  /* ── Name screen ── */
+  #nameScreen {
+    width: 100%;
+    max-width: 700px;
+  }
+  .name-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px 32px 32px;
+    text-align: center;
+  }
+  .name-card p {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+    text-align: left;
+  }
+  .field-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 6px;
+  }
+  .field-input {
+    width: 100%;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 13px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.18s;
+  }
+  .field-input::placeholder { color: var(--muted); }
+  .field-input:focus { border-color: var(--gold); }
+  .field-error {
+    font-size: 12px;
+    color: #ad4a4a;
+    margin-top: 5px;
+    display: none;
+  }
+  .field-error.show { display: block; }
+  .btn-start {
+    width: 100%;
+    background: var(--gold);
+    color: #111;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+  }
+  .btn-start:hover { background: #e0b95a; transform: translateY(-1px); }
+
+  /* ── Participant name in results ── */
+  .participant-name {
+    font-size: 13px;
+    color: var(--gold-dim);
+    margin-bottom: 16px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Sheets status banner ── */
+  .sheets-banner {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid;
+  }
+  .sheets-banner.sending {
+    display: flex;
+    background: rgba(201,168,76,0.08);
+    border-color: var(--gold-dim);
+    color: var(--gold);
+  }
+  .sheets-banner.success {
+    display: flex;
+    background: var(--correct-bg);
+    border-color: #4aad7a;
+    color: #a3d4b8;
+  }
+  .sheets-banner.error {
+    display: flex;
+    background: var(--wrong-bg);
+    border-color: #ad4a4a;
+    color: #d4a3a3;
+  }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--gold-dim);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 480px) {
+    .card { padding: 22px 16px 20px; }
+    .option-btn { padding: 12px 14px; }
+    .name-card { padding: 24px 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">PERU MINERIA · Gerencia de Cultura</p>
+  <h1>Cuestionario de Cultura<br>Organizacional</h1>
+  <div class="gold-rule"></div>
+</header>
+
+<div id="nameScreen">
+  <div class="name-card">
+    <p>Antes de comenzar, ingresa tus datos para registrar tu participación en esta evaluación de cultura organizacional.</p>
+    <div class="field-group">
+      <div>
+        <label class="field-label" for="inputNombres">Nombres</label>
+        <input class="field-input" type="text" id="inputNombres" placeholder="Ej. Juan Carlos" autocomplete="given-name">
+        <div class="field-error" id="errorNombres">Por favor ingresa tus nombres.</div>
+      </div>
+      <div>
+        <label class="field-label" for="inputApellidos">Apellidos</label>
+        <input class="field-input" type="text" id="inputApellidos" placeholder="Ej. Quispe Mamani" autocomplete="family-name">
+        <div class="field-error" id="errorApellidos">Por favor ingresa tus apellidos.</div>
+      </div>
+    </div>
+    <button class="btn-start" onclick="startQuiz()">Iniciar cuestionario →</button>
+  </div>
+</div>
+
+<div class="progress-wrap" id="progressWrap" style="display:none">
+  <div class="progress-meta">
+    <span id="progressLabel">Pregunta 1 de 10</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+</div>
+
+<div id="quiz" style="display:none">
+  <div class="card" id="questionCard">
+    <p class="section-tag" id="sectionTag"></p>
+    <p class="question-text" id="questionText"></p>
+    <div class="options" id="optionsContainer"></div>
+    <div class="feedback" id="feedback">
+      <div class="feedback-label" id="feedbackLabel"></div>
+      <div id="feedbackText"></div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="btn-next" id="btnNext">Siguiente pregunta →</button>
+  </div>
+</div>
+
+<div id="results">
+  <p class="participant-name" id="participantDisplay"></p>
+  <div class="score-ring">
+    <svg viewBox="0 0 100 100" width="130" height="130">
+      <circle class="ring-bg" cx="50" cy="50" r="45"/>
+      <circle class="ring-fill" id="ringFill" cx="50" cy="50" r="45" stroke-dashoffset="314"/>
+    </svg>
+    <div class="score-center">
+      <div class="score-number" id="scoreNumber">0</div>
+      <div class="score-label">/ 10</div>
+    </div>
+  </div>
+  <h2 class="result-title" id="resultTitle"></h2>
+  <p class="result-subtitle" id="resultSubtitle"></p>
+  <div class="score-breakdown">
+    <div class="breakdown-item">
+      <div class="breakdown-num green" id="correctCount">0</div>
+      <div class="breakdown-lbl">Correctas</div>
+    </div>
+    <div class="breakdown-item">
+      <div class="breakdown-num red" id="wrongCount">0</div>
+      <div class="breakdown-lbl">Incorrectas</div>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restart()">↺ Volver a intentar</button>
+  <div class="sheets-banner" id="sheetsBanner">
+    <span id="sheetsIcon"></span>
+    <span id="sheetsMsg"></span>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    section: "Propósito y Visión",
+    text: "Un operador nuevo pregunta por qué la empresa invierte en desarrollo comunitario si eso no impacta directamente la producción. ¿Qué respuesta refleja mejor el propósito de PERU MINERIA?",
+    options: [
+      "Porque es una exigencia legal de las concesiones mineras en el Perú.",
+      "Porque mejorar la imagen corporativa atrae mejores inversionistas.",
+      "Porque transformar el recurso mineral en oportunidades reales para las familias y comunidades es parte del propósito de la empresa.",
+      "Porque las comunidades pueden paralizar operaciones si no se les compensa."
+    ],
+    correct: 2,
+    explanation: "El propósito 'Forjamos progreso real desde la cordillera' establece que PERU MINERIA transforma el recurso mineral en oportunidades de desarrollo tangibles para las familias de los operadores y las comunidades locales."
+  },
+  {
+    section: "Origen en la Altura",
+    text: "¿Por qué el manual enfatiza que los resultados operativos en PERU MINERIA 'no dependen de la suerte'?",
+    options: [
+      "Porque la empresa cuenta con los equipos más modernos de Latinoamérica.",
+      "Porque se trabaja en condiciones climáticas favorables que reducen el margen de error.",
+      "Porque el personal tiene los salarios más competitivos del sector minero peruano.",
+      "Porque dependen del planeamiento milimétrico del tajo, la confiabilidad mecánica y el compromiso de cada colaborador con la seguridad mutua."
+    ],
+    correct: 3,
+    explanation: "El manual señala que los resultados dependen del planeamiento del tajo, la confiabilidad de los equipos mecánicos y el compromiso de cada colaborador con la seguridad mutua, no de factores externos."
+  },
+  {
+    section: "Decisiones en Campo",
+    text: "Durante una guardia, un mecánico identifica una condición insegura en un equipo de perforación. El supervisor de turno le indica que continúe para no perder tiempo productivo. ¿Qué debe hacer el mecánico según la cultura de PERU MINERIA?",
+    options: [
+      "Detener la operación del equipo, porque cualquier colaborador tiene la autoridad y obligación de hacerlo ante una condición inaceptable de seguridad.",
+      "Consultar primero con la superintendencia antes de tomar cualquier decisión.",
+      "Continuar la operación y documentar la observación en el reporte al final del turno.",
+      "Acatar la instrucción del supervisor porque la jerarquía debe respetarse en campo."
+    ],
+    correct: 0,
+    explanation: "El principio 'Poder de Detención' establece que cualquier colaborador, sin importar su rango, tiene autoridad y obligación de detener una tarea ante una condición inaceptable de seguridad. La gerencia respalda esta acción."
+  },
+  {
+    section: "Ley del Campamento",
+    text: "Al finalizar su guardia, un supervisor detecta que un equipo tiene una falla menor que no afectará la producción inmediata. ¿Cuál es la actitud correcta según la Ley del Campamento?",
+    options: [
+      "No mencionar la falla para no generar preocupaciones innecesarias al turno entrante.",
+      "Comunicarlo verbalmente al supervisor entrante pero omitirlo del reporte escrito.",
+      "Documentar con precisión el estado del equipo y las condiciones pendientes, sin dejar problemas ocultos a la guardia entrante.",
+      "Resolverlo personalmente antes de terminar el turno aunque implique horas extra."
+    ],
+    correct: 2,
+    explanation: "'La Entrega de Turno' exige documentar con precisión el estado físico de los equipos y las metas pendientes. No se dejan problemas ocultos a la guardia entrante; se asume plena responsabilidad."
+  },
+  {
+    section: "Valores Core — Seguridad de Vida",
+    text: "La producción del mes está por debajo de la meta y hay presión para acelerar los procesos. Un supervisor propone flexibilizar temporalmente algunos pasos del pre-uso de equipos para recuperar tiempo. ¿Qué principio de PERU MINERIA se estaría violando principalmente?",
+    options: [
+      "Excelencia de Oficio, porque se estarían bajando los estándares técnicos.",
+      "Seguridad de Vida, porque la integridad de las personas está por encima de cualquier cuota de mineral o meta financiera.",
+      "Integridad Transparente, porque se estaría ocultando información a la gerencia.",
+      "Agilidad de Campo, porque el proceso correcto es comunicarlo a la superintendencia."
+    ],
+    correct: 1,
+    explanation: "'Seguridad de Vida' establece que la integridad de la gente está por encima de cualquier cuota de mineral o meta financiera. No se aceleran procesos de riesgo bajo ninguna circunstancia."
+  },
+  {
+    section: "Valores Core — Integridad Transparente",
+    text: "Un operador detecta que su equipo sufrió un daño menor durante la guardia por un error en la operación. ¿Qué conducta refleja el valor de Integridad Transparente?",
+    options: [
+      "Reportarlo solo si el daño afecta la operación del siguiente turno.",
+      "Comunicarlo únicamente a su supervisor inmediato para manejarlo internamente.",
+      "Esperar que el área de mantenimiento lo detecte en la siguiente revisión programada.",
+      "Reportar el incidente real, decir la verdad técnica y asumir las consecuencias del acto."
+    ],
+    correct: 3,
+    explanation: "Integridad Transparente implica actuar con honestidad inquebrantable, reportar los incidentes reales y asumir las consecuencias de los propios actos, independientemente de las circunstancias."
+  },
+  {
+    section: "Conductas que Exigimos",
+    text: "Al inicio de cada jornada en el tajo, ¿qué conducta específica exige el manual de cultura de PERU MINERIA a todos los operadores?",
+    options: [
+      "Mantener frentes de trabajo limpios, herramientas en su lugar y realizar pre-usos meticulosos de toda la maquinaria.",
+      "Asistir a la charla de seguridad y firmar el registro de asistencia antes de operar.",
+      "Coordinar con el supervisor las metas del turno y los indicadores de producción del día.",
+      "Revisar el reporte del turno anterior y validar los avances registrados por la guardia saliente."
+    ],
+    correct: 0,
+    explanation: "'Disciplina de Orden en el Turno' exige mantener frentes de trabajo limpios, herramientas en su lugar y realizar pre-usos meticulosos de toda la maquinaria antes de iniciar la jornada en el tajo."
+  },
+  {
+    section: "El Rol del Supervisor",
+    text: "¿Cómo define el manual de cultura el liderazgo auténtico en PERU MINERIA?",
+    options: [
+      "Tomar decisiones rápidas y comunicarlas con claridad a través de los canales formales.",
+      "Gestionar los indicadores de producción y seguridad desde la sala de control de operaciones.",
+      "Liderar con el casco puesto, asumir la responsabilidad técnica de la seguridad de la guardia y escuchar atentamente al operador del tajo.",
+      "Delegar las decisiones operativas a los supervisores de guardia y validar resultados al cierre del turno."
+    ],
+    correct: 2,
+    explanation: "'Liderazgo de Campo Auténtico' define liderar como guiar con el ejemplo del casco puesto, asumiendo la responsabilidad técnica de la seguridad de la guardia y escuchando atentamente al operador del tajo."
+  },
+  {
+    section: "Conductas Incompatibles",
+    text: "Un ingeniero de planeamiento toma decisiones sobre cambios en el método de perforación sin bajar al tajo a verificar las condiciones reales del terreno ni consultar al operador experto. ¿Cómo clasifica el manual esta conducta?",
+    options: [
+      "Datos antes que Jerarquía, porque prioriza el análisis técnico sobre la opinión del campo.",
+      "Agilidad de Campo, porque evita demoras burocráticas en la toma de decisiones.",
+      "La Distancia de Escritorio, una conducta incompatible con la cultura de PERU MINERIA.",
+      "Formación Técnica Continua, porque el ingeniero aplica su conocimiento especializado."
+    ],
+    correct: 2,
+    explanation: "'La Distancia de Escritorio' es una conducta incompatible: tomar decisiones operativas críticas desde oficinas cerradas sin escuchar la opinión experta del operador en campo."
+  },
+  {
+    section: "El Compromiso de la Guardia",
+    text: "¿Qué premisa irrenunciable resume el compromiso central de PERU MINERIA respecto a sus trabajadores, según el cierre del manual?",
+    options: [
+      "La eficiencia operativa y la sostenibilidad ambiental son las prioridades estratégicas de cada guardia.",
+      "El crecimiento regional y la rentabilidad del proyecto son las metas que cada guardia debe proteger.",
+      "La meta de producción jamás vale más que la vida de la gente; cada guardia vuelve a casa sana.",
+      "La tecnología de precisión y la rigurosidad técnica son los factores que definen la competitividad minera."
+    ],
+    correct: 2,
+    explanation: "El Compromiso de la Guardia establece esta premisa irrenunciable como el sello cultural de PERU MINERIA: la producción nunca está por encima de la vida de las personas."
+  }
+];
+
+// ── CONFIGURACIÓN ─────────────────────────────────────────────
+// Pega aquí la URL de tu Google Apps Script deployment:
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwKxc6Yn_jR0MaMjWXMvzHHt5tgnBvFOb2Y7Hk2PP5BtcYZ8ifvnG87zZ3MFYImyeVX/exec";
+// ─────────────────────────────────────────────────────────────
+
+const letters = ['a', 'b', 'c', 'd'];
+let current = 0;
+let score = 0;
+let answered = false;
+let participantName = '';
+let nombres_global = '';
+let apellidos_global = '';
+let answers = []; // registra {chosen, correct} por pregunta
+
+function startQuiz() {
+  const nombres = document.getElementById('inputNombres').value.trim();
+  const apellidos = document.getElementById('inputApellidos').value.trim();
+
+  document.getElementById('errorNombres').className = 'field-error' + (nombres ? '' : ' show');
+  document.getElementById('errorApellidos').className = 'field-error' + (apellidos ? '' : ' show');
+  if (!nombres || !apellidos) return;
+
+  nombres_global = nombres;
+  apellidos_global = apellidos;
+  participantName = nombres + ' ' + apellidos;
+  answers = [];
+
+  document.getElementById('nameScreen').style.display = 'none';
+  document.getElementById('progressWrap').style.display = '';
+  document.getElementById('quiz').style.display = '';
+  render();
+}
+
+// ── Envía resultados a Google Sheets ──────────────────────────
+async function sendToSheets() {
+  if (!SHEETS_URL || SHEETS_URL === "PEGA_AQUÍ_TU_URL_DE_APPS_SCRIPT") return;
+
+  const banner = document.getElementById('sheetsBanner');
+  const icon   = document.getElementById('sheetsIcon');
+  const msg    = document.getElementById('sheetsMsg');
+
+  // Estado: enviando
+  banner.className = 'sheets-banner sending';
+  icon.innerHTML = '<div class="spinner"></div>';
+  msg.textContent = 'Guardando resultados en Google Sheets…';
+
+  const payload = {
+    nombres:   nombres_global,
+    apellidos: apellidos_global,
+    score:     score,
+    total:     questions.length,
+    answers:   answers.map((a, i) => ({
+      question: questions[i].section,
+      chosen:   letters[a.chosen].toUpperCase() + ') ' + questions[i].options[a.chosen],
+      correct:  a.correct
+    }))
+  };
+
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    // no-cors no devuelve body, pero si no lanza error, fue exitoso
+    banner.className = 'sheets-banner success';
+    icon.innerHTML = '✓';
+    msg.textContent = 'Resultados guardados correctamente en Google Sheets.';
+  } catch (err) {
+    banner.className = 'sheets-banner error';
+    icon.innerHTML = '✗';
+    msg.textContent = 'No se pudo conectar con Google Sheets. Verifica la URL del script.';
+    console.error('Sheets error:', err);
+  }
+}
+
+function render() {
+  const q = questions[current];
+  answered = false;
+
+  document.getElementById('sectionTag').textContent = q.section.toUpperCase();
+  document.getElementById('questionText').textContent = q.text;
+
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  document.getElementById('btnNext').className = 'btn-next';
+
+  const pct = Math.round((current / questions.length) * 100);
+  document.getElementById('progressLabel').textContent = `Pregunta ${current + 1} de ${questions.length}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option-btn');
+
+  buttons.forEach(b => b.disabled = true);
+
+  const isCorrect = idx === q.correct;
+  if (isCorrect) score++;
+  answers.push({ chosen: idx, correct: isCorrect });
+
+  buttons[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) buttons[q.correct].classList.add('correct');
+
+  const fb = document.getElementById('feedback');
+  const label = document.getElementById('feedbackLabel');
+  const text = document.getElementById('feedbackText');
+
+  if (isCorrect) {
+    fb.className = 'feedback correct-fb show';
+    label.textContent = '✓ Correcto';
+  } else {
+    fb.className = 'feedback wrong-fb show';
+    label.textContent = '✗ Incorrecto';
+  }
+  text.textContent = q.explanation;
+
+  const btnNext = document.getElementById('btnNext');
+  btnNext.className = 'btn-next show';
+  if (current === questions.length - 1) {
+    btnNext.textContent = 'Ver resultados →';
+  } else {
+    btnNext.textContent = 'Siguiente pregunta →';
+  }
+}
+
+document.getElementById('btnNext').onclick = () => {
+  current++;
+  if (current >= questions.length) {
+    showResults();
+  } else {
+    render();
+  }
+};
+
+function showResults() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  const results = document.getElementById('results');
+  results.className = 'show';
+
+  document.getElementById('participantDisplay').textContent = participantName.toUpperCase();
+  document.getElementById('scoreNumber').textContent = score;
+  document.getElementById('correctCount').textContent = score;
+  document.getElementById('wrongCount').textContent = questions.length - score;
+
+  const pct = score / questions.length;
+  const offset = 314 - (314 * pct);
+  setTimeout(() => {
+    document.getElementById('ringFill').style.strokeDashoffset = offset;
+  }, 100);
+
+  let title, subtitle;
+  if (score === 10) {
+    title = "¡Guardia completa! Conoces nuestra cultura.";
+    subtitle = "Demuestras dominio total de los valores, conductas y compromisos de PERU MINERIA.";
+  } else if (score >= 8) {
+    title = "Sólido conocimiento de nuestra cultura.";
+    subtitle = "Estás bien alineado con nuestra identidad. Repasa los puntos donde puedes mejorar.";
+  } else if (score >= 6) {
+    title = "Buen punto de partida.";
+    subtitle = "Conoces los fundamentos, pero hay áreas del manual que vale la pena reforzar.";
+  } else {
+    title = "Es momento de releer el manual.";
+    subtitle = "Nuestra cultura se construye turno a turno. Te invitamos a revisarla con calma.";
+  }
+
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultSubtitle').textContent = subtitle;
+
+  // Enviar a Google Sheets
+  sendToSheets();
+}
+
+function restart() {
+  current = 0;
+  score = 0;
+  participantName = '';
+  nombres_global = '';
+  apellidos_global = '';
+  answers = [];
+  document.getElementById('results').className = '';
+  document.getElementById('sheetsBanner').className = 'sheets-banner';
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('nameScreen').style.display = '';
+  document.getElementById('inputNombres').value = '';
+  document.getElementById('inputApellidos').value = '';
+  document.getElementById('errorNombres').className = 'field-error';
+  document.getElementById('errorApellidos').className = 'field-error';
+  document.getElementById('ringFill').style.strokeDashoffset = '314';
+}
+
+// Allow Enter key to start quiz
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('nameScreen').style.display !== 'none') {
+    startQuiz();
+  }
+});
+
+</script>
+</body>
+</html>
